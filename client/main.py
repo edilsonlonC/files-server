@@ -40,7 +40,7 @@ def download(args):
     with open(filename, "wb") as f:
         f.write(bytes_to_save)
 
-
+# change name 
 def decide_commads():
     if len(sys.argv) <= 1:
         return "error"
