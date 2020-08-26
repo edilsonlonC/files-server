@@ -22,13 +22,16 @@ def list_files():
 
 
 def download(filename):
+    download_info = {"filename": filename}
     try:
         file = open(f"files/{filename}", "rb")
         bytes_to_download = file.read()
-        socket.send(bytes_to_download)
+        download_info["bytes"] = bytes_to_download
+        socket.send(pickle.dumps(download_info))
     except FileNotFoundError:
         print("error")
-        socket.send(b"error in server")
+        download_info["fileNotFound"] = True
+        socket.send(pickle.dumps(download_info))
 
 
 def commands(files):
