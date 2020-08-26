@@ -1,3 +1,4 @@
+#!/home/edilson/anaconda3/bin/python3.8
 import zmq
 import pickle
 import json
@@ -40,7 +41,7 @@ def commands(files):
         filename = files.get("filename").decode("utf-8")
         bytes_to_save = files.get("bytes")
         uplodad_file(filename, bytes_to_save)
-        socket.send_string("prueba")
+        socket.send_string("file uploaded")
     elif command == b"list":
         list_files()
     elif command == b"download":
