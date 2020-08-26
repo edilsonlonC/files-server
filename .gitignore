@@ -7,3 +7,5 @@
 */files/*jpg
 */files/*txt
 */example/
+
+*/database/__pycache__
