@@ -14,6 +14,11 @@ def upload(args):
     files["filename"] = args[1].encode("utf-8")
     try:
         file = open(files.get("filename"), "rb")
+        if '/' in args[1]:
+            files['filename'] = args[1].split('/')[-1].encode('utf-8')
+            print(files.get('filename'))
+
+            
         bytes_file = file.read()
         files["bytes"] = bytes_file
         socket.send(pickle.dumps(files))
