@@ -55,7 +55,7 @@ def download(args):
 
 
 # change name
-def decide_commads():
+def decide_commands():
     if len(sys.argv) <= 1:
         return "error"
     args = sys.argv[1:]
@@ -76,7 +76,7 @@ def decide_commads():
 
 
 def main():
-    decide_commads()
+    decide_commands()
 
 
 if __name__ == "__main__":
