@@ -15,7 +15,7 @@ from database import (
 
 # from database.connection import connection
 from getpass import getpass
-from utilities import get_filename
+from utilities import get_filename, get_files_same_name, get_possible_name
 
 
 context = zmq.Context()
@@ -26,7 +26,6 @@ socket.bind("tcp://*:5555")
 def register(info_user):
     username = info_user.get("username")
     password = info_user.get("password")
-    print(username)
     # conn = connection()
     user = get_user(username)
     if not user:
@@ -34,6 +33,15 @@ def register(info_user):
         socket.send(pickle.dumps({"user_saved": True}))
     else:
         socket.send(pickle.dumps({"user_saved": False}))
+
+def rewrite (id_user,filename):
+    files_db = get_files_by_owner_and_filename(filename,id_user)
+    name_to_save = get_filename(file_db[0][0], filename)
+    with open(f"files/{name_to_save}", "wb") as f:
+        f.write(bytes_to_save)
+    socket.send(pickle.dumps({"file_saved": True}))
+
+
 
 
 def uplodad_file(files):
@@ -45,14 +53,22 @@ def uplodad_file(files):
     if not user:
         socket.send(pickle.dumps({"unauthorized": True}))
         return
-    print(user[0][0])
     if get_files_by_owner_and_filename(filename, user[0][0]):
-        socket.send(pickle.dumps({"files_exist": True}))
+        # verificar los nombres que contengan el mismo nombre
+        # recorrer y renombrar hasta encontrar un nombre posible
+        # enviar el posible nombre en un json
+        # y validar si se reemplaza se le agrega el nuevo nombreo o se cancela la funcion
+        if files.get('rewrite'):
+            rewrite(user[0][0] , filename)
+            return
+        new_name = get_possible_name(filename)
+        files['newname'] = new_name
+        print(new_name)
+        socket.send(pickle.dumps(files))
         return
     create_file(user[0][0], filename)
     file_in_db = get_files_by_owner_and_filename(filename, user[0][0])
     name_to_save = get_filename(file_in_db[0][0], filename)
-    print(name_to_save)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
     socket.send(pickle.dumps({"file_saved": True}))
@@ -67,7 +83,7 @@ def list_files(files):
         return
     files_in_db = get_files_by_owner(user[0][0])
     if not files_in_db:
-        files_in_db = [(0,'no tiene elementos')]
+        files_in_db = [(0, "no tiene elementos")]
     files_list = os.listdir("files")
     list_to_send = list(map(lambda filename: filename[1].encode("utf-8"), files_in_db))
     socket.send_multipart(list_to_send)
@@ -111,7 +127,6 @@ def commands(files):
         files["filename"] = files.get("filename").decode("utf-8")
         download(files)
     elif command == b"register":
-        print(files)
         register(files)
 
 

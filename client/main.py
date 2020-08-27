@@ -60,8 +60,20 @@ def upload(args):
         if json_message.get("unauthorized"):
             print(f"{Fore.YELLOW} unauthorized")
             return
-        elif json_message.get("files_exist"):
-            print(f"{Fore.RED} file exist")
+        elif json_message.get("newname"):
+            newname = json_message.get('newname')
+            print(f"{Fore.RED} file exist you want to rename {newname}")
+            option = input()
+            if option == 'c':
+                json_message['filename'] = newname.encode('utf-8')
+                socket.send(pickle.dumps(json_message))
+                response  =  socket.recv()
+                print(pickle.loads(response))
+            elif option == 'r':
+                json_message['rewrite'] = True
+                socket.send(pickle.dumps(json_message))
+                response = socket.recv()
+            print(option)
             return
         print(f"{Fore.GREEN} file uploaded")
     except FileNotFoundError:
@@ -82,7 +94,7 @@ def list_files(args):
 
 
 def download(args):
-    if len(args < 4):
+    if len(args) < 4:
         print('arguments missed')
         return
     filename = args[1]

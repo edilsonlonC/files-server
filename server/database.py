@@ -25,9 +25,10 @@ def get_user(username):
 
 
 def get_users_and_pass(username, password):
+
     cursor = con.cursor()
     cursor.execute(
-        "SELECT * FROM user where name = ? AND pass = ? ", (username, password)
+        "SELECT * FROM user WHERE name = ? AND pass = ? ", (username, password)
     )
     rows = cursor.fetchall()
     return rows
@@ -36,7 +37,7 @@ def get_users_and_pass(username, password):
 def create_file(id_owner, filename):
     cursor = con.cursor()
     cursor.execute(
-        "INSERT INTO files (namefile , id_owner) values (?,?)", (filename, id_owner,)
+        "INSERT INTO files (namefile , id_owner) VALUES (?,?)", (filename, id_owner,)
     )
     con.commit()
 
@@ -68,5 +69,12 @@ def get_files_by_owner(id_owner):
 def get_files():
     cursor = con.cursor()
     cursor.execute("SELECT * FROM files")
+    rows = cursor.fetchall()
+    return rows
+
+
+def get_files_same_name(filename):
+    cursor = con.cursor()
+    cursor.execute("SELECT * FROM files WHERE namefile LIKE '%'||?||'%'", (filename,))
     rows = cursor.fetchall()
     return rows
