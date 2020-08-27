@@ -3,7 +3,7 @@ import zmq
 import pickle
 import json
 import os
-
+from database.database import create_user , get_user
 
 context = zmq.Context()
 socket = context.socket(zmq.REP)
