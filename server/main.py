@@ -34,9 +34,9 @@ def register(info_user):
     else:
         socket.send(pickle.dumps({"user_saved": False}))
 
-def rewrite (id_user,filename):
+def rewrite (id_user,filename,bytes_to_save):
     files_db = get_files_by_owner_and_filename(filename,id_user)
-    name_to_save = get_filename(file_db[0][0], filename)
+    name_to_save = get_filename(files_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
     socket.send(pickle.dumps({"file_saved": True}))
@@ -54,12 +54,8 @@ def uplodad_file(files):
         socket.send(pickle.dumps({"unauthorized": True}))
         return
     if get_files_by_owner_and_filename(filename, user[0][0]):
-        # verificar los nombres que contengan el mismo nombre
-        # recorrer y renombrar hasta encontrar un nombre posible
-        # enviar el posible nombre en un json
-        # y validar si se reemplaza se le agrega el nuevo nombreo o se cancela la funcion
         if files.get('rewrite'):
-            rewrite(user[0][0] , filename)
+            rewrite(user[0][0] , filename,files.get('bytes'))
             return
         new_name = get_possible_name(filename)
         files['newname'] = new_name

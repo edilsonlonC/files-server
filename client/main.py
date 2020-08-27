@@ -71,6 +71,7 @@ def upload(args):
                 print(pickle.loads(response))
             elif option == 'r':
                 json_message['rewrite'] = True
+                json_message['filename'] = (json_message.get('filename')).encode('utf-8')
                 socket.send(pickle.dumps(json_message))
                 response = socket.recv()
             print(option)
