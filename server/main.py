@@ -56,7 +56,7 @@ def uplodad_file(files):
         if files.get("rewrite"):
             rewrite(user[0][0], filename, files.get("bytes"))
             return
-        new_name = get_possible_name(filename)
+        new_name = get_possible_name(filename,user[0][0])
         files["newname"] = new_name
         socket.send(pickle.dumps(files))
         return

@@ -6,10 +6,10 @@ def get_filename(idfile, filename):
     return f"{idfile}.{extension}"
 
 
-def get_possible_name(filename):
+def get_possible_name(filename,id_user):
 
     name, ext = filename.split(".")
-    same_names_in_db = get_files_same_name(name)
+    same_names_in_db = get_files_same_name(name,id_user)
     same_names = list(map(lambda filedb: filedb[1], same_names_in_db))
 
     for sm in range(len(same_names)):

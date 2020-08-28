@@ -73,8 +73,8 @@ def get_files():
     return rows
 
 
-def get_files_same_name(filename):
+def get_files_same_name(filename,id_user):
     cursor = con.cursor()
-    cursor.execute("SELECT * FROM files WHERE namefile LIKE '%'||?||'%'", (filename,))
+    cursor.execute("SELECT * FROM files WHERE namefile LIKE '%'||?||'%' and id_owner = ?" , (filename,id_user))
     rows = cursor.fetchall()
     return rows
