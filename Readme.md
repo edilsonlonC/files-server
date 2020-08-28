@@ -21,4 +21,4 @@ list username
 ###  register registra un usuario
 ### download descarga un archivo que se encuentre el servidor
 ### upload sube un archivo al servidor
-### list lista los archivos del usuario registrad
+### list lista los archivos del usuario registrado
