@@ -17,22 +17,24 @@ socket.connect("tcp://localhost:5555")
 
 def send_register(info_user):
     info_to_send = pickle.dumps(info_user)
-    print(info_to_send)
     socket.send(info_to_send)
     response = socket.recv()
     json_response = pickle.loads(response)
     if not json_response.get("user_saved"):
         username = info_user.get("username")
-        print(f"username {username} exist")
+        print(f"username {username} exists")
         return
     print("user created")
 
 
 def register(args):
     if len(args) < 2:
-        print('arguments missed')
+        print("arguments are missing")
         return
     password = getpass()
+    if not password:
+        print('you need a password')
+        exit(1)
     files["username"] = args[1]
     files["password"] = password
     print(files)
@@ -40,17 +42,19 @@ def register(args):
 
 
 def upload(args):
-    if len(args) < 4:
-        print('arguments missed')
+    if len(args) < 3:
+        print("arguments missed")
         return
+    password = getpass()
+    if not password:
+        exit(1)
     files["filename"] = args[1].encode("utf-8")
     files["username"] = args[2]
-    files["password"] = args[3]
+    files["password"] = password
     try:
         file = open(files.get("filename"), "rb")
         if "/" in args[1]:
             files["filename"] = args[1].split("/")[-1].encode("utf-8")
-            print(files.get("filename"))
 
         bytes_file = file.read()
         files["bytes"] = bytes_file
@@ -61,50 +65,63 @@ def upload(args):
             print(f"{Fore.YELLOW} unauthorized")
             return
         elif json_message.get("newname"):
-            newname = json_message.get('newname')
-            print(f"{Fore.RED} file exist you want to rename {newname}")
+            newname = json_message.get("newname")
+            print(
+                f"{Fore.RED} The file exists. if you want to add it as a {newname} press c, if you want to overwrite r and e to exit"
+            )
             option = input()
-            if option == 'c':
-                json_message['filename'] = newname.encode('utf-8')
-                socket.send(pickle.dumps(json_message))
-                response  =  socket.recv()
-                print(pickle.loads(response))
-            elif option == 'r':
-                json_message['rewrite'] = True
-                json_message['filename'] = (json_message.get('filename')).encode('utf-8')
+            if option == "c":
+                json_message["filename"] = newname.encode("utf-8")
                 socket.send(pickle.dumps(json_message))
                 response = socket.recv()
-            print(option)
+            elif option == "r":
+                json_message["rewrite"] = True
+                json_message["filename"] = (json_message.get("filename")).encode(
+                    "utf-8"
+                )
+                socket.send(pickle.dumps(json_message))
+                response = socket.recv()
+            else:
+                exit(0)
             return
         print(f"{Fore.GREEN} file uploaded")
     except FileNotFoundError:
-        print(f" {Fore.RED} file with name {files.get('filename')} doesnt exist")
+        print(f" {Fore.RED} file with name {files.get('filename')} does not exist")
 
 
 def list_files(args):
-    if len(args) < 3:
-        print('arguments missed')
+    if len(args) < 2:
+        print("arguments are missing")
         return
+    password = getpass()
+    if not password:
+        exit(1)
     files["username"] = args[1]
-    files["password"] = args[2]
+    files["password"] = password
     socket.send(pickle.dumps(files))
     files_list = socket.recv_multipart()
     list_to_show = list(map(lambda filename: filename.decode("utf-8"), files_list))
     output = generate_output_files(list_to_show)
-    print(f"{Fore.BLUE} {output} ")
+    print(f"{Fore.LIGHTYELLOW_EX} {output} ")
 
 
 def download(args):
-    if len(args) < 4:
-        print('arguments missed')
+    if len(args) < 3:
+        print("arguments are missing")
         return
+    password = getpass()
     filename = args[1]
     files["filename"] = filename.encode("utf-8")
     files["username"] = args[2]
-    files["password"] = args[3]
+    files["password"] = password
+    if not password:
+        exit(1)
     socket.send(pickle.dumps(files))
     download_info = socket.recv()
     json_info = pickle.loads(download_info)
+    if json_info.get("unauthorized"):
+            print(f"{Fore.YELLOW} unauthorized")
+            return
     if json_info.get("fileNotFound"):
         print(f"{Fore.RED} the file does not exists {filename}")
         return
@@ -116,11 +133,11 @@ def download(args):
 # change name
 def decide_commands():
     if len(sys.argv) <= 1:
-        return "error"
+        print("error")
+        return
     args = sys.argv[1:]
     command = args[0]
-    password = getpass()
-    args.append(password)
+  
 
     files["command"] = command.encode("utf-8")
     if command == "upload":

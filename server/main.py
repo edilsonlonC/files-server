@@ -34,14 +34,13 @@ def register(info_user):
     else:
         socket.send(pickle.dumps({"user_saved": False}))
 
-def rewrite (id_user,filename,bytes_to_save):
-    files_db = get_files_by_owner_and_filename(filename,id_user)
+
+def rewrite(id_user, filename, bytes_to_save):
+    files_db = get_files_by_owner_and_filename(filename, id_user)
     name_to_save = get_filename(files_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
     socket.send(pickle.dumps({"file_saved": True}))
-
-
 
 
 def uplodad_file(files):
@@ -54,12 +53,11 @@ def uplodad_file(files):
         socket.send(pickle.dumps({"unauthorized": True}))
         return
     if get_files_by_owner_and_filename(filename, user[0][0]):
-        if files.get('rewrite'):
-            rewrite(user[0][0] , filename,files.get('bytes'))
+        if files.get("rewrite"):
+            rewrite(user[0][0], filename, files.get("bytes"))
             return
         new_name = get_possible_name(filename)
-        files['newname'] = new_name
-        print(new_name)
+        files["newname"] = new_name
         socket.send(pickle.dumps(files))
         return
     create_file(user[0][0], filename)
@@ -75,7 +73,7 @@ def list_files(files):
     password = files.get("password")
     user = get_users_and_pass(username, password)
     if not user:
-        socket.send(pickle.dumps({"unauthorized": True}))
+        socket.send_multipart(["unauthorized".encode("utf-8")])
         return
     files_in_db = get_files_by_owner(user[0][0])
     if not files_in_db:
@@ -106,7 +104,6 @@ def download(files):
         download_info["bytes"] = bytes_to_download
         socket.send(pickle.dumps(download_info))
     except FileNotFoundError:
-        print("error")
         download_info["fileNotFound"] = True
         socket.send(pickle.dumps(download_info))
 
