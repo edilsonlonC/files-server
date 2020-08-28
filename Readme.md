@@ -1,13 +1,24 @@
-### desde el lado del cliente se tienen 3 comandos
+### Desde el lado del cliente se tienen 4 comandos
 
 ### se ejecuta el programa como python main.py en la carpeta cliente con alguno de los siguientes argumentos
-```
-download nombre
 
-upload nombre
 
-list 
+### Se ejecutan tanto el cliente como el servidor como ./main.py, en el caso del cliente con los argumentos correspondientes
 
 ```
 
-### solo rutas relativas por el momento
+register username    
+
+download filename username
+
+upload filename username
+
+list username 
+
+```
+
+ 
+###  register registra un usuario
+### download descarga un archivo que se encuentre el servidor
+### upload sube un archivo al servidor
+### list lista los archivos del usuario registrad

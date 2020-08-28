@@ -37,7 +37,6 @@ def register(args):
         exit(1)
     files["username"] = args[1]
     files["password"] = password
-    print(files)
     send_register(files)
 
 
