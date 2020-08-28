@@ -8,6 +8,7 @@ from utilities import generate_output_files
 from colorama import Fore
 from getpass import getpass
 
+
 files = {}
 
 context = zmq.Context()
@@ -66,7 +67,7 @@ def upload(args):
         elif json_message.get("newname"):
             newname = json_message.get("newname")
             print(
-                f"{Fore.RED} The file exists. if you want to add it as a {newname} press c, if you want to overwrite r and e to exit"
+                f"{Fore.LIGHTRED_EX} The file exists. if you want to add it as a {newname} press c, if you want to overwrite r and e to exit"
             )
             option = input()
             if option == "c":
@@ -132,7 +133,7 @@ def download(args):
 # change name
 def decide_commands():
     if len(sys.argv) <= 1:
-        print("error")
+        print("arguments are missing")
         return
     args = sys.argv[1:]
     command = args[0]
