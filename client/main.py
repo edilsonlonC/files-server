@@ -34,7 +34,7 @@ def register(args):
         return
     password = getpass()
     if not password:
-        print('you need a password')
+        print("you need a password")
         exit(1)
     files["username"] = args[1]
     files["password"] = password
@@ -120,8 +120,8 @@ def download(args):
     download_info = socket.recv()
     json_info = pickle.loads(download_info)
     if json_info.get("unauthorized"):
-            print(f"{Fore.YELLOW} unauthorized")
-            return
+        print(f"{Fore.YELLOW} unauthorized")
+        return
     if json_info.get("fileNotFound"):
         print(f"{Fore.RED} the file does not exists {filename}")
         return
@@ -137,7 +137,6 @@ def decide_commands():
         return
     args = sys.argv[1:]
     command = args[0]
-  
 
     files["command"] = command.encode("utf-8")
     if command == "upload":
