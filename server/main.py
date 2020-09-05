@@ -3,6 +3,7 @@ import zmq
 import pickle
 import json
 import os
+import json
 from database import (
     create_user,
     get_user,
@@ -78,7 +79,7 @@ def list_files(files):
     files_in_db = get_files_by_owner(user[0][0])
     if not files_in_db:
         files_in_db = [(0, "no tiene elementos")]
-    files_list = os.listdir("files")
+    #files_list = os.listdir("files")
     list_to_send = list(map(lambda filename: filename[1].encode("utf-8"), files_in_db))
     socket.send_multipart(list_to_send)
 

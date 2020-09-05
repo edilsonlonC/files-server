@@ -130,7 +130,7 @@ def download(args):
     print(f"{Fore.GREEN} {filename} downloaded")
 
 
-# change name
+
 def decide_commands():
     if len(sys.argv) <= 1:
         print("arguments are missing")
