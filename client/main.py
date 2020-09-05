@@ -7,7 +7,7 @@ import pickle
 from utilities import generate_output_files
 from colorama import Fore
 from getpass import getpass
-
+import json
 
 files = {}
 
@@ -48,17 +48,17 @@ def upload(args):
     password = getpass()
     if not password:
         exit(1)
-    files["filename"] = args[1].encode("utf-8")
+    files["filename"] = args[1]
     files["username"] = args[2]
     files["password"] = password
     try:
         file = open(files.get("filename"), "rb")
         if "/" in args[1]:
-            files["filename"] = args[1].split("/")[-1].encode("utf-8")
+            files["filename"] = args[1].split("/")[-1]
 
         bytes_file = file.read()
-        files["bytes"] = bytes_file
-        socket.send(pickle.dumps(files))
+        print(files)
+        socket.send_multipart([json.dumps(files).encode('utf-8'), bytes_file])
         response = socket.recv()
         json_message = pickle.loads(response)
         if json_message.get("unauthorized"):
@@ -98,7 +98,7 @@ def list_files(args):
         exit(1)
     files["username"] = args[1]
     files["password"] = password
-    socket.send(pickle.dumps(files))
+    socket.send_multipart([json.dumps(files).encode('utf-8')])
     files_list = socket.recv_multipart()
     list_to_show = list(map(lambda filename: filename.decode("utf-8"), files_list))
     output = generate_output_files(list_to_show)
@@ -111,14 +111,14 @@ def download(args):
         return
     password = getpass()
     filename = args[1]
-    files["filename"] = filename.encode("utf-8")
+    files["filename"] = filename
     files["username"] = args[2]
     files["password"] = password
     if not password:
         exit(1)
-    socket.send(pickle.dumps(files))
-    download_info = socket.recv()
-    json_info = pickle.loads(download_info)
+    socket.send_multipart([json.dumps(files).encode('utf-8')])
+    download_info = socket.recv_multipart()
+    json_info = json.loads(download_info[0].decode('utf-8'))
     if json_info.get("unauthorized"):
         print(f"{Fore.YELLOW} unauthorized")
         return
@@ -126,9 +126,8 @@ def download(args):
         print(f"{Fore.RED} the file does not exists {filename}")
         return
     with open(filename, "wb") as f:
-        f.write(json_info.get("bytes"))
+        f.write(download_info[1])
     print(f"{Fore.GREEN} {filename} downloaded")
-
 
 
 def decide_commands():
@@ -138,7 +137,7 @@ def decide_commands():
     args = sys.argv[1:]
     command = args[0]
 
-    files["command"] = command.encode("utf-8")
+    files["command"] = command
     if command == "upload":
         upload(args)
 
