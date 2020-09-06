@@ -17,10 +17,10 @@ socket.connect("tcp://localhost:5555")
 
 
 def send_register(info_user):
-    info_to_send = pickle.dumps(info_user)
-    socket.send(info_to_send)
-    response = socket.recv()
-    json_response = pickle.loads(response)
+    info_to_send = json.dumps(info_user)
+    socket.send_multipart([info_to_send.encode('utf-8')])
+    response = socket.recv_multipart()
+    json_response = json.loads(response[0])
     if not json_response.get("user_saved"):
         username = info_user.get("username")
         print(f"username {username} exists")
