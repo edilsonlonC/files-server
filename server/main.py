@@ -31,9 +31,9 @@ def register(info_user):
     user = get_user(username)
     if not user:
         create_user(username, password)
-        socket.send(pickle.dumps({"user_saved": True}))
+        socket.send(json.dumps({"user_saved": True}).encode("utf-8"))
     else:
-        socket.send(pickle.dumps({"user_saved": False}))
+        socket.send(json.dumps({"user_saved": False}).encode("utf-8"))
 
 
 def rewrite(id_user, filename, bytes_to_save):
@@ -90,23 +90,25 @@ def download(files):
     filename = files.get("filename")
     user = get_users_and_pass(username, password)
     if not user:
-        socket.send_multipart([json.dumps({"unauthorized": True}).encode('utf-8')])
+        socket.send_multipart([json.dumps({"unauthorized": True}).encode("utf-8")])
         return
     files_db = get_files_by_owner_and_filename(filename, user[0][0])
     download_info = {"filename": filename}
     if not files_db:
         download_info["fileNotFound"] = True
-        socket.send_multipart([json.dumps(download_info).encode('utf-8')])
+        socket.send_multipart([json.dumps(download_info).encode("utf-8")])
         return
     name_in_folder = get_filename(files_db[0][0], filename)
     try:
         file = open(f"files/{name_in_folder}", "rb")
         bytes_to_download = file.read()
-        #download_info["bytes"] = bytes_to_download
-        socket.send_multipart([json.dumps(download_info).encode('utf-8'),bytes_to_download])
+        # download_info["bytes"] = bytes_to_download
+        socket.send_multipart(
+            [json.dumps(download_info).encode("utf-8"), bytes_to_download]
+        )
     except FileNotFoundError:
         download_info["fileNotFound"] = True
-        socket.send_multipart([json.dumps(download_info).encode('utf-8')])
+        socket.send_multipart([json.dumps(download_info).encode("utf-8")])
 
 
 def commands(files):
@@ -128,9 +130,9 @@ def main():
     while True:
         print("server is running")
         message = socket.recv_multipart()
-        files = json.loads(message[0].decode('utf-8'))
+        files = json.loads(message[0].decode("utf-8"))
         if len(message) > 1:
-            files['bytes'] = message[1]
+            files["bytes"] = message[1]
         commands(files)
 
 

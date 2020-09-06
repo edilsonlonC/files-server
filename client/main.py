@@ -18,7 +18,7 @@ socket.connect("tcp://localhost:5555")
 
 def send_register(info_user):
     info_to_send = json.dumps(info_user)
-    socket.send_multipart([info_to_send.encode('utf-8')])
+    socket.send_multipart([info_to_send.encode("utf-8")])
     response = socket.recv_multipart()
     json_response = json.loads(response[0])
     if not json_response.get("user_saved"):
@@ -58,7 +58,7 @@ def upload(args):
 
         bytes_file = file.read()
         print(files)
-        socket.send_multipart([json.dumps(files).encode('utf-8'), bytes_file])
+        socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
         response = socket.recv()
         json_message = pickle.loads(response)
         if json_message.get("unauthorized"):
@@ -98,7 +98,7 @@ def list_files(args):
         exit(1)
     files["username"] = args[1]
     files["password"] = password
-    socket.send_multipart([json.dumps(files).encode('utf-8')])
+    socket.send_multipart([json.dumps(files).encode("utf-8")])
     files_list = socket.recv_multipart()
     list_to_show = list(map(lambda filename: filename.decode("utf-8"), files_list))
     output = generate_output_files(list_to_show)
@@ -116,9 +116,9 @@ def download(args):
     files["password"] = password
     if not password:
         exit(1)
-    socket.send_multipart([json.dumps(files).encode('utf-8')])
+    socket.send_multipart([json.dumps(files).encode("utf-8")])
     download_info = socket.recv_multipart()
-    json_info = json.loads(download_info[0].decode('utf-8'))
+    json_info = json.loads(download_info[0].decode("utf-8"))
     if json_info.get("unauthorized"):
         print(f"{Fore.YELLOW} unauthorized")
         return
