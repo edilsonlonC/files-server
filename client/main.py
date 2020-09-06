@@ -58,8 +58,16 @@ def upload(args):
         if "/" in args[1]:
             files["filename"] = args[1].split("/")[-1]
 
-        bytes_file = file.read()
-        print(files)
+        bytes_file = file.read(size)
+        socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
+        response = socket.recv_multipart()
+        while bytes_file:
+            bytes_file = file.read(size)
+            files["uploading"] = True
+            socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
+            response = socket.recv_multipart()
+            print(response[0])
+        files["uploading"] = False
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
         response = socket.recv_multipart()
         file_bytes = response[1] if len(response) > 1 else None

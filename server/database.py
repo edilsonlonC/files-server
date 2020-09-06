@@ -81,3 +81,11 @@ def get_files_same_name(filename, id_user):
     )
     rows = cursor.fetchall()
     return rows
+
+
+def update_upload(state, filename):
+    cursor = con.cursor()
+    cursor.execute(
+        "UPDATE files SET uploading = ? WHERE namefile = ? ", (state, filename),
+    )
+    con.commit()

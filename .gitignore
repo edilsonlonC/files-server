@@ -5,10 +5,11 @@
 */*txt
 */*pdf
 */*mp3
-
+*/*mp4
 */files/*jpg
 */files/*txt
 */files/*mp3
+*/files/*mp4
 */example/
 
 */database/__pycache__

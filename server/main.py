@@ -12,6 +12,7 @@ from database import (
     create_file,
     get_files_by_owner_and_filename,
     get_files_by_owner,
+    update_upload,
 )
 
 # from database.connection import connection
@@ -22,6 +23,14 @@ from utilities import get_filename, get_files_same_name, get_possible_name
 context = zmq.Context()
 socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
+
+
+def append_file(id_user, filename, bytes_to_save):
+    files_db = get_files_by_owner_and_filename(filename, id_user)
+    name_to_save = get_filename(files_db[0][0], filename)
+    with open(f"files/{name_to_save}", "ab") as f:
+        f.write(bytes_to_save)
+    socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
 
 
 def register(info_user):
@@ -64,6 +73,12 @@ def uplodad_file(files):
             file_bytes = files.get("bytes")
             del files["bytes"]
             socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+            return
+        else:
+            if not files.get("uploading"):
+                update_upload(0, filename)
+
+            append_file(user[0][0], filename, files.get("bytes"))
             return
 
     else:
