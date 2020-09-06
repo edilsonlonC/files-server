@@ -59,8 +59,9 @@ def upload(args):
         bytes_file = file.read()
         print(files)
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
-        response = socket.recv()
-        json_message = pickle.loads(response)
+        response = socket.recv_multipart()
+        file_bytes = response[1] if len(response) > 1 else None
+        json_message = json.loads(response[0])
         if json_message.get("unauthorized"):
             print(f"{Fore.YELLOW} unauthorized")
             return
@@ -71,15 +72,14 @@ def upload(args):
             )
             option = input()
             if option == "c":
-                json_message["filename"] = newname.encode("utf-8")
-                socket.send(pickle.dumps(json_message))
-                response = socket.recv()
+                json_message["filename"] = newname
+                socket.send_multipart([json.dumps(json_message).encode('utf-8'), file_bytes])
+                response = socket.recv_multipart()
             elif option == "r":
                 json_message["rewrite"] = True
-                json_message["filename"] = (json_message.get("filename")).encode(
-                    "utf-8"
-                )
-                socket.send(pickle.dumps(json_message))
+                json_message["filename"] = (json_message.get("filename"))
+                socket.send_multipart([json.dumps(json_message).encode('utf-8'), file_bytes])
+
                 response = socket.recv()
             else:
                 exit(0)

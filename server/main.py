@@ -53,20 +53,26 @@ def uplodad_file(files):
     if not user:
         socket.send(pickle.dumps({"unauthorized": True}))
         return
-    if get_files_by_owner_and_filename(filename, user[0][0]):
-        if files.get("rewrite"):
-            rewrite(user[0][0], filename, files.get("bytes"))
+    files_by_owner_and_filename = get_files_by_owner_and_filename(filename, user[0][0])
+    if files_by_owner_and_filename:
+        if files_by_owner_and_filename[0][2] == 0:
+            if files.get("rewrite"):
+                rewrite(user[0][0], filename, files.get("bytes"))
+                return
+            new_name = get_possible_name(filename, user[0][0])
+            files["newname"] = new_name
+            file_bytes = files.get('bytes')
+            del files['bytes']
+            socket.send_multipart([json.dumps(files).encode('utf-8'),file_bytes])
             return
-        new_name = get_possible_name(filename, user[0][0])
-        files["newname"] = new_name
-        socket.send(pickle.dumps(files))
-        return
-    create_file(user[0][0], filename)
+    
+    else: 
+        create_file(user[0][0], filename)
     file_in_db = get_files_by_owner_and_filename(filename, user[0][0])
     name_to_save = get_filename(file_in_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
-    socket.send(pickle.dumps({"file_saved": True}))
+    socket.send_multipart([json.dumps({"file_saved": True}).encode('utf-8')])
 
 
 def list_files(files):

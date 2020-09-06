@@ -8,6 +8,7 @@ create table user (
 create table files (
     id INTEGER PRIMARY KEY AUTOINCREMENT, 
     namefile varchar(200),
+    uploading boolean NOT NULL DEFAULT 1 ,
     id_owner int,
     foreign key (id_owner) references user(id)
 
