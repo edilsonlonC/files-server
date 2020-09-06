@@ -15,7 +15,7 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
-
+size = 1024*1024*10
 def send_register(info_user):
     info_to_send = json.dumps(info_user)
     socket.send_multipart([info_to_send.encode("utf-8")])
