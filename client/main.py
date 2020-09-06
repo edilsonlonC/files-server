@@ -15,7 +15,9 @@ context = zmq.Context()
 socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
-size = 1024*1024*10
+size = 1024 * 1024 * 10
+
+
 def send_register(info_user):
     info_to_send = json.dumps(info_user)
     socket.send_multipart([info_to_send.encode("utf-8")])
@@ -73,12 +75,16 @@ def upload(args):
             option = input()
             if option == "c":
                 json_message["filename"] = newname
-                socket.send_multipart([json.dumps(json_message).encode('utf-8'), file_bytes])
+                socket.send_multipart(
+                    [json.dumps(json_message).encode("utf-8"), file_bytes]
+                )
                 response = socket.recv_multipart()
             elif option == "r":
                 json_message["rewrite"] = True
-                json_message["filename"] = (json_message.get("filename"))
-                socket.send_multipart([json.dumps(json_message).encode('utf-8'), file_bytes])
+                json_message["filename"] = json_message.get("filename")
+                socket.send_multipart(
+                    [json.dumps(json_message).encode("utf-8"), file_bytes]
+                )
 
                 response = socket.recv()
             else:

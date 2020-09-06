@@ -61,18 +61,18 @@ def uplodad_file(files):
                 return
             new_name = get_possible_name(filename, user[0][0])
             files["newname"] = new_name
-            file_bytes = files.get('bytes')
-            del files['bytes']
-            socket.send_multipart([json.dumps(files).encode('utf-8'),file_bytes])
+            file_bytes = files.get("bytes")
+            del files["bytes"]
+            socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
             return
-    
-    else: 
+
+    else:
         create_file(user[0][0], filename)
     file_in_db = get_files_by_owner_and_filename(filename, user[0][0])
     name_to_save = get_filename(file_in_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
-    socket.send_multipart([json.dumps({"file_saved": True}).encode('utf-8')])
+    socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
 
 
 def list_files(files):
