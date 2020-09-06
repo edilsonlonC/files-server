@@ -79,7 +79,7 @@ def list_files(files):
     files_in_db = get_files_by_owner(user[0][0])
     if not files_in_db:
         files_in_db = [(0, "no tiene elementos")]
-    #files_list = os.listdir("files")
+    # files_list = os.listdir("files")
     list_to_send = list(map(lambda filename: filename[1].encode("utf-8"), files_in_db))
     socket.send_multipart(list_to_send)
 
@@ -90,45 +90,47 @@ def download(files):
     filename = files.get("filename")
     user = get_users_and_pass(username, password)
     if not user:
-        socket.send(pickle.dumps({"unauthorized": True}))
+        socket.send_multipart([json.dumps({"unauthorized": True}).encode('utf-8')])
         return
     files_db = get_files_by_owner_and_filename(filename, user[0][0])
     download_info = {"filename": filename}
     if not files_db:
         download_info["fileNotFound"] = True
-        socket.send(pickle.dumps(download_info))
+        socket.send_multipart([json.dumps(download_info).encode('utf-8')])
         return
     name_in_folder = get_filename(files_db[0][0], filename)
     try:
         file = open(f"files/{name_in_folder}", "rb")
         bytes_to_download = file.read()
-        download_info["bytes"] = bytes_to_download
-        socket.send(pickle.dumps(download_info))
+        #download_info["bytes"] = bytes_to_download
+        socket.send_multipart([json.dumps(download_info).encode('utf-8'),bytes_to_download])
     except FileNotFoundError:
         download_info["fileNotFound"] = True
-        socket.send(pickle.dumps(download_info))
+        socket.send_multipart([json.dumps(download_info).encode('utf-8')])
 
 
 def commands(files):
     command = files.get("command")
-    if command == b"upload":
-        files["filename"] = files.get("filename").decode("utf-8")
+    if command == "upload":
+        files["filename"] = files.get("filename")
         files["bytes"] = files.get("bytes")
         uplodad_file(files)
-    elif command == b"list":
+    elif command == "list":
         list_files(files)
-    elif command == b"download":
-        files["filename"] = files.get("filename").decode("utf-8")
+    elif command == "download":
+        files["filename"] = files.get("filename")
         download(files)
-    elif command == b"register":
+    elif command == "register":
         register(files)
 
 
 def main():
     while True:
         print("server is running")
-        message = socket.recv()
-        files = pickle.loads(message)
+        message = socket.recv_multipart()
+        files = json.loads(message[0].decode('utf-8'))
+        if len(message) > 1:
+            files['bytes'] = message[1]
         commands(files)
 
 
