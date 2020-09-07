@@ -18,6 +18,44 @@ socket.connect("tcp://localhost:5555")
 size = 1024 * 1024 * 10
 
 
+def create_new_file_newname(files):
+    filename = files.get("filename")
+    newname = files.get("newname")
+    try:
+        file = open(filename, "rb")
+        file_bytes = file.read(size)
+        files["filename"] = files.get("newname")
+        socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+        response = socket.recv_multipart()
+        files["uploading"] = True
+        while file_bytes:
+            file_bytes = file.read(size)
+            socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+            response = socket.recv_multipart()
+            print(response[0])
+        files["uploading"] = False
+        socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+        response = socket.recv_multipart()
+        return
+
+        print(files)
+    except FileNotFoundError:
+        print("file doesnt exist")
+
+    return
+
+
+def handler_file_exist(files):
+    print(
+        f"{Fore.LIGHTRED_EX} The file exists. if you want to add it as a {files.get('newname')} press c, if you want to overwrite r and e to exit"
+    )
+    option = input()
+    if option == "c":
+        create_new_file_newname(files)
+
+    return
+
+
 def send_register(info_user):
     info_to_send = json.dumps(info_user)
     socket.send_multipart([info_to_send.encode("utf-8")])
@@ -26,6 +64,7 @@ def send_register(info_user):
     if not json_response.get("user_saved"):
         username = info_user.get("username")
         print(f"username {username} exists")
+        handler_file_exist(files)
         return
     print("user created")
 
@@ -61,6 +100,16 @@ def upload(args):
         bytes_file = file.read(size)
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
         response = socket.recv_multipart()
+        json_response = json.loads(response[0])
+
+        if json_response.get("unauthorized"):
+            print(f"{Fore.YELLOW} unauthorized")
+            return
+        elif json_response.get("newname"):
+            handler_file_exist(json_response)
+            print(f"the file exist")
+            return
+
         while bytes_file:
             bytes_file = file.read(size)
             files["uploading"] = True
