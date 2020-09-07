@@ -45,7 +45,7 @@ def register(info_user):
         socket.send(json.dumps({"user_saved": False}).encode("utf-8"))
 
 
-def rewrite(id_user, filename, bytes_to_save):
+def rewrite(id_user, filename, bytes_to_save, is_step_1):
     files_db = get_files_by_owner_and_filename(filename, id_user)
     name_to_save = get_filename(files_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
@@ -60,7 +60,7 @@ def uplodad_file(files):
     password = files.get("password")
     user = get_users_and_pass(username, password)
     if not user:
-        socket.send(pickle.dumps({"unauthorized": True}))
+        socket.send_multipart([json.dumps({"unauthorized": True}).encode('utf-8')])
         return
     files_by_owner_and_filename = get_files_by_owner_and_filename(filename, user[0][0])
     if files_by_owner_and_filename:
