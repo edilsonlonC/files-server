@@ -48,9 +48,14 @@ def register(info_user):
 def rewrite(id_user, filename, bytes_to_save, is_step_1):
     files_db = get_files_by_owner_and_filename(filename, id_user)
     name_to_save = get_filename(files_db[0][0], filename)
-    with open(f"files/{name_to_save}", "wb") as f:
-        f.write(bytes_to_save)
-    socket.send(pickle.dumps({"file_saved": True}))
+    if is_step_1:
+        with open(f"files/{name_to_save}", "wb") as f:
+            f.write(bytes_to_save)
+        socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
+    else:
+        with open(f"files/{name_to_save}", "ab") as f:
+            f.write(bytes_to_save)
+        socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
 
 
 def uplodad_file(files):
@@ -58,17 +63,23 @@ def uplodad_file(files):
     bytes_to_save = files.get("bytes")
     username = files.get("username")
     password = files.get("password")
-    user = get_users_and_pass(username, password)
-    if not user:
-        socket.send_multipart([json.dumps({"unauthorized": True}).encode('utf-8')])
-        return
-    files_by_owner_and_filename = get_files_by_owner_and_filename(filename, user[0][0])
+    if files.get("first_step"):
+        user = get_users_and_pass(username, password)
+        print("check user in database")
+        if not user:
+            socket.send_multipart([json.dumps({"unauthorized": True}).encode("utf-8")])
+            return
+        files["user_id"] = user[0][0]
+
+    user_id = files.get("user_id")
+    files_by_owner_and_filename = get_files_by_owner_and_filename(filename, user_id)
     if files_by_owner_and_filename:
         if files_by_owner_and_filename[0][2] == 0:
             if files.get("rewrite"):
-                rewrite(user[0][0], filename, files.get("bytes"))
+                first_step = files.get("first_step")
+                rewrite(user_id, filename, files.get("bytes"), first_step)
                 return
-            new_name = get_possible_name(filename, user[0][0])
+            new_name = get_possible_name(filename, user_id)
             files["newname"] = new_name
             file_bytes = files.get("bytes")
             del files["bytes"]
@@ -78,16 +89,17 @@ def uplodad_file(files):
             if not files.get("uploading"):
                 update_upload(0, filename)
 
-            append_file(user[0][0], filename, files.get("bytes"))
+            append_file(user_id, filename, files.get("bytes"))
             return
 
     else:
-        create_file(user[0][0], filename)
-    file_in_db = get_files_by_owner_and_filename(filename, user[0][0])
+        create_file(user_id, filename)
+    file_in_db = get_files_by_owner_and_filename(filename, user_id)
     name_to_save = get_filename(file_in_db[0][0], filename)
     with open(f"files/{name_to_save}", "wb") as f:
         f.write(bytes_to_save)
-    socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
+    del files["bytes"]
+    socket.send_multipart([json.dumps(files).encode("utf-8")])
 
 
 def list_files(files):

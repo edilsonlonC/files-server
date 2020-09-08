@@ -45,6 +45,28 @@ def create_new_file_newname(files):
     return
 
 
+def rewrite_file(files):
+    files["rewrite"] = True
+    files["first_step"] = True
+    filename = files.get("filename")
+    try:
+        file = open(filename, "rb")
+        file_bytes = file.read(size)
+        socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+        response = socket.recv_multipart()
+        while file_bytes:
+            files["first_step"] = False
+            file_bytes = file.read(size)
+            socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
+            response = socket.recv_multipart()
+            print(response)
+
+    except FileNotFoundError:
+        print("file does not exists")
+
+    return
+
+
 def handler_file_exist(files):
     print(
         f"{Fore.LIGHTRED_EX} The file exists. if you want to add it as a {files.get('newname')} press c, if you want to overwrite r and e to exit"
@@ -52,6 +74,8 @@ def handler_file_exist(files):
     option = input()
     if option == "c":
         create_new_file_newname(files)
+    if option == "r":
+        rewrite_file(files)
 
     return
 
@@ -64,7 +88,6 @@ def send_register(info_user):
     if not json_response.get("user_saved"):
         username = info_user.get("username")
         print(f"username {username} exists")
-        handler_file_exist(files)
         return
     print("user created")
 
@@ -98,6 +121,8 @@ def upload(args):
             files["filename"] = args[1].split("/")[-1]
 
         bytes_file = file.read(size)
+        files["first_step"] = True
+        print(files)
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
         response = socket.recv_multipart()
         json_response = json.loads(response[0])
@@ -112,8 +137,12 @@ def upload(args):
 
         while bytes_file:
             bytes_file = file.read(size)
-            files["uploading"] = True
-            socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
+            json_response["uploading"] = True
+            json_response["first_step"] = False
+            print(json_response)
+            socket.send_multipart(
+                [json.dumps(json_response).encode("utf-8"), bytes_file]
+            )
             response = socket.recv_multipart()
             print(response[0])
         files["uploading"] = False
