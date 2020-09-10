@@ -31,13 +31,13 @@ def create_new_file_newname(files):
         files = json.loads(response[0])
         files["uploading"] = True
         files["first_step"] = False
-        files['second_step'] = True
+        files["second_step"] = True
         while file_bytes:
             file_bytes = file.read(size)
             socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
             response = socket.recv_multipart()
             files = json.loads(response[0])
-            files['second_step'] = False
+            files["second_step"] = False
             print(files)
         files["uploading"] = False
         socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
@@ -137,7 +137,7 @@ def upload(args):
             handler_file_exist(json_response)
             print(f"the file exist")
             return
-        json_response['second_step'] = True
+        json_response["second_step"] = True
         while bytes_file:
             bytes_file = file.read(size)
             json_response["uploading"] = True
@@ -147,7 +147,7 @@ def upload(args):
             )
             response = socket.recv_multipart()
             json_response = json.loads(response[0])
-            json_response['second_step'] = False
+            json_response["second_step"] = False
         json_response["uploading"] = False
         socket.send_multipart([json.dumps(json_response).encode("utf-8"), bytes_file])
         response = socket.recv_multipart()

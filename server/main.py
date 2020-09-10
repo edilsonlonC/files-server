@@ -26,14 +26,14 @@ socket.bind("tcp://*:5555")
 
 
 def append_file(files, bytes_to_save):
-    id_user = files.get('user_id')
-    filename = files.get('filename')
-    
+    id_user = files.get("user_id")
+    filename = files.get("filename")
+
     files_db = get_files_by_owner_and_filename(filename, id_user)
     name_to_save = get_filename(files_db[0][0], filename)
     with open(f"files/{name_to_save}", "ab") as f:
         f.write(bytes_to_save)
-    del files['bytes']
+    del files["bytes"]
     print(files)
     socket.send_multipart([json.dumps(files).encode("utf-8")])
 
@@ -75,13 +75,13 @@ def uplodad_file(files):
             socket.send_multipart([json.dumps({"unauthorized": True}).encode("utf-8")])
             return
         files["user_id"] = user[0][0]
-        files['file_info'] = get_files_by_owner_and_filename(filename,user[0][0])
+        files["file_info"] = get_files_by_owner_and_filename(filename, user[0][0])
     user_id = files.get("user_id")
-    if files.get('second_step'):
-        files['file_info'] = get_files_by_owner_and_filename(filename,user_id)
-    files_by_owner_and_filename = files.get('file_info')
-    print('RAM',files_by_owner_and_filename)
-    #print('database', get_files_by_owner_and_filename(filename,user_id))
+    if files.get("second_step"):
+        files["file_info"] = get_files_by_owner_and_filename(filename, user_id)
+    files_by_owner_and_filename = files.get("file_info")
+    print("RAM", files_by_owner_and_filename)
+    # print('database', get_files_by_owner_and_filename(filename,user_id))
     if files_by_owner_and_filename:
         if files_by_owner_and_filename[0][2] == 0:
             if files.get("rewrite"):
