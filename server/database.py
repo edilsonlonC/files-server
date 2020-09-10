@@ -89,3 +89,11 @@ def update_upload(state, file_id):
         "UPDATE files SET uploading = ? WHERE id= ? ", (state, file_id),
     )
     con.commit()
+
+
+def delete_file(filename, user_id):
+    cursor = con.cursor()
+    cursor.execute(
+        "DELETE FROM files where namefile = ? AND id_owner = ?", (filename, user_id),
+    )
+    con.commit()

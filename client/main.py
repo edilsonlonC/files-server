@@ -9,6 +9,7 @@ from colorama import Fore
 from getpass import getpass
 import json
 
+
 files = {}
 
 context = zmq.Context()
@@ -16,6 +17,13 @@ socket = context.socket(zmq.REQ)
 socket.connect("tcp://localhost:5555")
 
 size = 1024 * 1024 * 10
+
+
+def handler_signal(sig, frame):
+    files["command"] = "cancel"
+    socket.send_multipart([json.dumps(files).encode("utf-8")])
+    response = socket.recv_multipart()
+    sys.exit(0)
 
 
 def create_new_file_newname(files):
@@ -38,7 +46,6 @@ def create_new_file_newname(files):
             response = socket.recv_multipart()
             files = json.loads(response[0])
             files["second_step"] = False
-            print(files)
         files["uploading"] = False
         socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
         response = socket.recv_multipart()
@@ -63,7 +70,6 @@ def rewrite_file(files):
             file_bytes = file.read(size)
             socket.send_multipart([json.dumps(files).encode("utf-8"), file_bytes])
             response = socket.recv_multipart()
-            print(response)
 
     except FileNotFoundError:
         print("file does not exists")
@@ -123,7 +129,7 @@ def upload(args):
         file = open(files.get("filename"), "rb")
         if "/" in args[1]:
             files["filename"] = args[1].split("/")[-1]
-
+        print(f"{Fore.GREEN} uploading")
         bytes_file = file.read(size)
         files["first_step"] = True
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
@@ -139,6 +145,7 @@ def upload(args):
             return
         json_response["second_step"] = True
         while bytes_file:
+
             bytes_file = file.read(size)
             json_response["uploading"] = True
             json_response["first_step"] = False
@@ -151,34 +158,8 @@ def upload(args):
         json_response["uploading"] = False
         socket.send_multipart([json.dumps(json_response).encode("utf-8"), bytes_file])
         response = socket.recv_multipart()
-        file_bytes = response[1] if len(response) > 1 else None
-        json_message = json.loads(response[0])
-        if json_message.get("unauthorized"):
-            print(f"{Fore.YELLOW} unauthorized")
-            return
-        elif json_message.get("newname"):
-            newname = json_message.get("newname")
-            print(
-                f"{Fore.LIGHTRED_EX} The file exists. if you want to add it as a {newname} press c, if you want to overwrite r and e to exit"
-            )
-            option = input()
-            if option == "c":
-                json_message["filename"] = newname
-                socket.send_multipart(
-                    [json.dumps(json_message).encode("utf-8"), file_bytes]
-                )
-                response = socket.recv_multipart()
-            elif option == "r":
-                json_message["rewrite"] = True
-                json_message["filename"] = json_message.get("filename")
-                socket.send_multipart(
-                    [json.dumps(json_message).encode("utf-8"), file_bytes]
-                )
-
-                response = socket.recv()
-            else:
-                exit(0)
-            return
+        # file_bytes = response[1] if len(response) > 1 else None
+        # json_message = json.loads(response[0])
         print(f"{Fore.GREEN} file uploaded")
     except FileNotFoundError:
         print(f" {Fore.RED} file with name {files.get('filename')} does not exist")
@@ -253,4 +234,11 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        filename = files.get("filename")
+        command = files.get("command")
+        if command == "upload":
+            print(f"error uploading file {filename}")
+        sys.exit(0)

@@ -3,3 +3,4 @@
 rm database.db 
 touch database.db
 rm files/*
+sqlite3 database.db

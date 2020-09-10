@@ -6,10 +6,12 @@
 */*pdf
 */*mp3
 */*mp4
+*/*iso
 */files/*jpg
 */files/*txt
 */files/*mp3
 */files/*mp4
+*/files/*iso
 */example/
 
 */database/__pycache__

@@ -13,6 +13,7 @@ from database import (
     get_files_by_owner_and_filename,
     get_files_by_owner,
     update_upload,
+    delete_file,
 )
 
 # from database.connection import connection
@@ -25,6 +26,17 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 
 
+def cancel_upload(files):
+    username = files.get("username")
+    filename = files.get("filename")
+    user = get_user(username)
+    file_info = get_files_by_owner_and_filename(filename, user[0][0])
+    delete_file(filename, user[0][0])
+    filename_server = get_filename(file_info[0][0], filename)
+    os.remove(f"files/{filename_server}")
+    socket.send_multipart([json.dumps({"upload_cancel": True}).encode("utf-8")])
+
+
 def append_file(files, bytes_to_save):
     id_user = files.get("user_id")
     filename = files.get("filename")
@@ -34,7 +46,6 @@ def append_file(files, bytes_to_save):
     with open(f"files/{name_to_save}", "ab") as f:
         f.write(bytes_to_save)
     del files["bytes"]
-    print(files)
     socket.send_multipart([json.dumps(files).encode("utf-8")])
 
 
@@ -70,7 +81,6 @@ def uplodad_file(files):
     password = files.get("password")
     if files.get("first_step"):
         user = get_users_and_pass(username, password)
-        print("check user in database")
         if not user:
             socket.send_multipart([json.dumps({"unauthorized": True}).encode("utf-8")])
             return
@@ -80,8 +90,6 @@ def uplodad_file(files):
     if files.get("second_step"):
         files["file_info"] = get_files_by_owner_and_filename(filename, user_id)
     files_by_owner_and_filename = files.get("file_info")
-    print("RAM", files_by_owner_and_filename)
-    # print('database', get_files_by_owner_and_filename(filename,user_id))
     if files_by_owner_and_filename:
         if files_by_owner_and_filename[0][2] == 0:
             if files.get("rewrite"):
@@ -166,6 +174,8 @@ def commands(files):
         download(files)
     elif command == "register":
         register(files)
+    elif command == "cancel":
+        cancel_upload(files)
 
 
 def main():
