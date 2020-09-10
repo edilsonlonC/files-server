@@ -25,12 +25,17 @@ socket = context.socket(zmq.REP)
 socket.bind("tcp://*:5555")
 
 
-def append_file(id_user, filename, bytes_to_save):
+def append_file(files, bytes_to_save):
+    id_user = files.get('user_id')
+    filename = files.get('filename')
+    
     files_db = get_files_by_owner_and_filename(filename, id_user)
     name_to_save = get_filename(files_db[0][0], filename)
     with open(f"files/{name_to_save}", "ab") as f:
         f.write(bytes_to_save)
-    socket.send_multipart([json.dumps({"file_saved": True}).encode("utf-8")])
+    del files['bytes']
+    print(files)
+    socket.send_multipart([json.dumps(files).encode("utf-8")])
 
 
 def register(info_user):
@@ -70,9 +75,13 @@ def uplodad_file(files):
             socket.send_multipart([json.dumps({"unauthorized": True}).encode("utf-8")])
             return
         files["user_id"] = user[0][0]
-
+        files['file_info'] = get_files_by_owner_and_filename(filename,user[0][0])
     user_id = files.get("user_id")
-    files_by_owner_and_filename = get_files_by_owner_and_filename(filename, user_id)
+    if files.get('second_step'):
+        files['file_info'] = get_files_by_owner_and_filename(filename,user_id)
+    files_by_owner_and_filename = files.get('file_info')
+    print('RAM',files_by_owner_and_filename)
+    #print('database', get_files_by_owner_and_filename(filename,user_id))
     if files_by_owner_and_filename:
         if files_by_owner_and_filename[0][2] == 0:
             if files.get("rewrite"):
@@ -87,9 +96,9 @@ def uplodad_file(files):
             return
         else:
             if not files.get("uploading"):
-                update_upload(0, filename)
+                update_upload(0, files_by_owner_and_filename[0][0])
 
-            append_file(user_id, filename, files.get("bytes"))
+            append_file(files, files.get("bytes"))
             return
 
     else:
@@ -160,8 +169,8 @@ def commands(files):
 
 
 def main():
+    print("server is running")
     while True:
-        print("server is running")
         message = socket.recv_multipart()
         files = json.loads(message[0].decode("utf-8"))
         if len(message) > 1:
