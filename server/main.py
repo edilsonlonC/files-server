@@ -1,7 +1,5 @@
 #!/home/edilson/anaconda3/bin/python3.8
 import zmq
-import pickle
-import json
 import os
 import json
 from database import (

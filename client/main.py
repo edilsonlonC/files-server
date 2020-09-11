@@ -2,8 +2,6 @@
 
 import zmq
 import sys
-import sys
-import pickle
 from utilities import generate_output_files
 from colorama import Fore
 from getpass import getpass
@@ -129,7 +127,6 @@ def upload(args):
         file = open(files.get("filename"), "rb")
         if "/" in args[1]:
             files["filename"] = args[1].split("/")[-1]
-        print(f"{Fore.GREEN} uploading")
         bytes_file = file.read(size)
         files["first_step"] = True
         socket.send_multipart([json.dumps(files).encode("utf-8"), bytes_file])
@@ -141,9 +138,10 @@ def upload(args):
             return
         elif json_response.get("newname"):
             handler_file_exist(json_response)
-            print(f"the file exist")
             return
         json_response["second_step"] = True
+        print(f"{Fore.GREEN} uploading")
+
         while bytes_file:
 
             bytes_file = file.read(size)
